@@ -1,0 +1,96 @@
+    public class Ball
+    {
+        public Vector2 position;
+        public Vector2 direction;
+        Rectangle rect;
+        Texture2D Texture;
+        Color color;
+        float speed = 20;
+        Random random;
+        public float angle;
+        SoundEffect sfx;
+        SoundEffect sfx2;
+        float maxAngle = 5 * MathHelper.Pi / MathHelper.ToRadians(12);
+
+        public Ball(Vector2 ArgPosition, Texture2D ArgTexture, Color ArgColor,SoundEffect ArgSfx,SoundEffect ArgSfx2)
+        {
+            position = ArgPosition;
+            Texture = ArgTexture;
+            color = ArgColor;
+            direction = new Vector2(speed,0);
+            sfx = ArgSfx;
+            sfx2 = ArgSfx2;
+            rect = new Rectangle(0,0,Texture.Width, Texture.Height);
+        }
+        public void Update(Racket argRacket,Racket argRacket2, int scrw, int scrh, GameTime gameTime)
+        {
+            Racket racket = argRacket;
+            Racket racket2 = argRacket2;
+            position += (direction * speed) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (position.X < 0 )
+            {
+                racket2.score += 1;
+                sfx2.Play();
+                position.X = scrw / 2;
+                position.Y = scrh / 2;
+                direction.Y = 0;
+                direction.X = -speed;
+            }
+            if (position.X > scrw)
+            {
+                racket.score += 1;
+                sfx2.Play();
+                position.X = scrw / 2;
+                position.Y = scrh / 2;
+                direction.Y = 0;
+                direction.X = speed;
+            }
+            if (Collide(racket))
+            {
+                sfx.Play();
+                float intersect = racket.position.Y + (racket.Texture.Height / 2) - (position.Y + Texture.Height/2);
+                float normalIntersect = intersect / (racket.Texture.Height / 2);
+                angle = normalIntersect * maxAngle;
+                direction.X = speed * (float)Math.Cos(angle);
+                direction.Y = speed * (float)-Math.Sin(angle);
+            }
+            if (Collide(racket2))
+            {
+                sfx.Play();
+                float intersect = racket2.position.Y + (racket2.Texture.Height / 2) - (position.Y + Texture.Height/2);
+                float normalIntersect = intersect / (racket2.Texture.Height / 2);
+                angle = normalIntersect * maxAngle;
+                direction.X = speed * (float)Math.Cos(angle);
+                direction.Y = speed * (float)-Math.Sin(angle);
+            }
+            if (position.Y <= 0)
+            {
+                direction.Y = -direction.Y;
+            }
+            if (position.Y + Texture.Height >= scrh)
+            {
+                direction.Y = -direction.Y;
+            }
+        }
+        public void Draw(SpriteBatch spriteBach)
+        {
+            if (position != null && Texture != null)
+            {
+                Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
+                //spriteBach.Draw(Texture, position, Color.White);
+                spriteBach.Draw(Texture, position, rect, color, angle, origin, 1, SpriteEffects.None, 1);
+            }
+        }
+        public bool Collide(Racket Argracket)
+        {
+            if (position.X < Argracket.position.X + Argracket.Texture.Width &&
+                position.X + Texture.Width > Argracket.position.X &&
+                position.Y < Argracket.position.Y + Argracket.Texture.Height &&
+                position.Y + Texture.Height > Argracket.position.Y )
+            {
+                Debug.WriteLine("Collision !");
+                return true;
+            }
+            return false;
+        }
+    }
